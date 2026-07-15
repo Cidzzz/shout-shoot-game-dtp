@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shout & Shoot - Voice + Hand Control Game</title>
+  
+  <!-- Google Font: Orbitron (untuk consistency dengan glider) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+  
+  <!-- MediaPipe Dependencies (dari CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Main Container -->
+  <div id="container">
+    <!-- Webcam Preview (small, pojok kiri atas) -->
+    <div id="webcam-container">
+      <video id="webcam-stream" autoplay playsinline></video>
+      <div id="webcam-label">WEBCAM</div>
+    </div>
+
+    <!-- Game Canvas (fullscreen) -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+      <div class="loading-content">
+        <h1>SHOUT & SHOOT</h1>
+        <div class="loading-spinner"></div>
+        <p>Memuat game...</p>
+        <p class="loading-hint">Pastikan izin kamera dan microphone telah diberikan</p>
+      </div>
+    </div>
+
+    <!-- Error Screen (jika ada masalah) -->
+    <div id="error-screen" style="display: none;">
+      <div class="error-content">
+        <h1>❌ ERROR</h1>
+        <p id="error-message">Terjadi kesalahan</p>
+        <button onclick="location.reload()">Reload Page</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Game Script (ES6 Module) -->
+  <script type="module" src="js/main.js"></script>
+
+  <!-- Loading Handler -->
+  <script>
+    // Hide loading screen setelah beberapa detik
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        const loadingScreen = document.getElementById('loading-screen');
+        if (loadingScreen) {
+          loadingScreen.style.opacity = '0';
+          setTimeout(() => {
+            loadingScreen.style.display = 'none';
+          }, 500);
+        }
+      }, 2000);
+    });
+
+    // Global error handler
+    window.addEventListener('error', (e) => {
+      console.error('Global error:', e.error);
+      const errorScreen = document.getElementById('error-screen');
+      const errorMessage = document.getElementById('error-message');
+      
+      if (errorScreen && errorMessage) {
+        errorMessage.textContent = e.error?.message || 'Terjadi kesalahan yang tidak diketahui';
+        errorScreen.style.display = 'flex';
+      }
+    });
+  </script>
+</body>
+</html>
