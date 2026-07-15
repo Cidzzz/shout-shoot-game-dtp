@@ -27,6 +27,7 @@ let audioManager;
 let player;
 let enemies = [];
 let bullets = [];
+let backgroundImage;
 
 // Timing
 let lastTime = 0;
@@ -75,6 +76,10 @@ async function init() {
     console.error('Failed to initialize hand tracker');
     return;
   }
+
+  // Load background image
+  backgroundImage = new Image();
+  backgroundImage.src = 'assets/sprites/Background.png';
 
   // Initialize player
   player = new Player(CONFIG.PLAYER.START_X, CONFIG.PLAYER.START_Y);
@@ -406,6 +411,7 @@ function updateGameOver(deltaTime) {
       startGame();
     } else if (hoveringMenu) {
       stateManager.changeState(GameState.MENU);
+      audioManager.playMenuMusic();
       handTracker.resetDwell();
     }
   }
@@ -434,6 +440,7 @@ function updateGameWin(deltaTime) {
       startGame();
     } else if (hoveringMenu) {
       stateManager.changeState(GameState.MENU);
+      audioManager.playMenuMusic();
       handTracker.resetDwell();
     }
   }
@@ -443,12 +450,16 @@ function updateGameWin(deltaTime) {
  * Render game (playing state)
  */
 function renderGame() {
-  // Draw background gradient
-  const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  gradient.addColorStop(0, '#001133');
-  gradient.addColorStop(1, '#000022');
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // Draw background image (fallback to gradient)
+  if (backgroundImage && backgroundImage.complete && backgroundImage.naturalWidth !== 0) {
+    ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+  } else {
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    gradient.addColorStop(0, '#001133');
+    gradient.addColorStop(1, '#000022');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
 
   // Draw player
   player.draw(ctx);

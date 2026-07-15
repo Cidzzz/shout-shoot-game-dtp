@@ -113,6 +113,20 @@ export class Player {
   }
 
   /**
+   * Reset player to initial state
+   */
+  reset() {
+    this.x = CONFIG.PLAYER.START_X;
+    this.y = CONFIG.PLAYER.START_Y;
+    this.health = CONFIG.PLAYER.MAX_HEALTH;
+    this.score = 0;
+    this.totalDistance = 0;
+    this.isDamaged = false;
+    this.damageTimer = 0;
+    this.angle = 0;
+  }
+
+  /**
    * Get health percentage
    * @returns {number} - Health percentage (0-1)
    */

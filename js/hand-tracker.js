@@ -118,10 +118,14 @@ export class HandTracker {
         return true; // Click triggered!
       }
     } else {
-      // Reset if target changed or no target
-      this.dwellTimer = 0;
-      this.isDwelling = false;
+      // New target — start counting immediately instead of skipping a frame
+      this.isDwelling = target !== null;
       this.lastDwellTarget = target;
+      if (target !== null) {
+        this.dwellTimer = deltaTime;
+      } else {
+        this.dwellTimer = 0;
+      }
     }
 
     return false;

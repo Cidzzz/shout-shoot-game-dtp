@@ -42,7 +42,7 @@ export class UI {
     // Instructions
     ctx.font = "18px 'Orbitron', sans-serif";
     ctx.fillStyle = '#AAAAAA';
-    ctx.fillText("TERIAK untuk bergerak ke kanan", canvas.width / 2, canvas.height / 2 - 20);
+    ctx.fillText("TERIAK untuk mundur/dodge", canvas.width / 2, canvas.height / 2 - 20);
     ctx.fillText("ARAHKAN TANGAN untuk menembak", canvas.width / 2, canvas.height / 2 + 5);
 
     // Start button
@@ -471,6 +471,7 @@ export function drawMuteButton(ctx, audioManager, pointer, canvasWidth, dwellPro
   ctx.textBaseline = 'middle';
   const icon = audioManager.isMuted ? '🔇' : '🔊';
   ctx.fillText(icon, btnX + btnSize/2, btnY + btnSize/2);
+  ctx.textBaseline = 'alphabetic'; // Reset to default
   
   // Return button bounds for click detection
   return { x: btnX, y: btnY, width: btnSize, height: btnSize };
