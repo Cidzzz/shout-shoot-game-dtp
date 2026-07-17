@@ -13,7 +13,7 @@ export class AudioManager {
     
     // Configure BGM
     this.bgMusic.menu.loop = true;
-    this.bgMusic.menu.volume = 0.3;
+    this.bgMusic.menu.volume = 1.0;
     this.bgMusic.gameplay.loop = true;
     this.bgMusic.gameplay.volume = 0.3;
     
@@ -25,7 +25,7 @@ export class AudioManager {
     
     // Set SFX volumes
     Object.values(this.sounds).forEach(sound => {
-      sound.volume = 0.5;
+      sound.volume = 1.0;
     });
     
     this.isMuted = false;

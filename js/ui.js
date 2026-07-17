@@ -10,7 +10,6 @@ export class UI {
     this.canvas = canvas;
     this.ctx = ctx;
     
-    // Button definitions
     this.startButton = { x: 0, y: 0, width: 300, height: 70 };
     this.restartButton = { x: 0, y: 0, width: 300, height: 70 };
     this.menuButton = { x: 0, y: 0, width: 300, height: 70 };
@@ -18,14 +17,9 @@ export class UI {
 
   // ========== MENU ==========
 
-  /**
-   * Draw main menu
-   */
   drawMenu(stateManager, handTracker, deltaTime) {
     const ctx = this.ctx;
     const canvas = this.canvas;
-
-    // Title with neon glow effect
     ctx.font = "bold 72px 'Orbitron', sans-serif";
     ctx.textAlign = 'center';
     ctx.shadowColor = '#00FFFF';
@@ -33,446 +27,276 @@ export class UI {
     ctx.fillStyle = '#FFFFFF';
     ctx.fillText("SHOUT & SHOOT", canvas.width / 2, canvas.height / 2 - 120);
     ctx.shadowBlur = 0;
-
-    // Subtitle
     ctx.font = "24px 'Orbitron', sans-serif";
     ctx.fillStyle = '#00FFFF';
     ctx.fillText("Voice + Hand Control Game", canvas.width / 2, canvas.height / 2 - 60);
-
-    // Instructions
     ctx.font = "18px 'Orbitron', sans-serif";
     ctx.fillStyle = '#AAAAAA';
-    ctx.fillText("TERIAK untuk mundur/dodge", canvas.width / 2, canvas.height / 2 - 20);
-    ctx.fillText("ARAHKAN TANGAN untuk menembak", canvas.width / 2, canvas.height / 2 + 5);
+    ctx.fillText("TERIAK Untuk Mundur", canvas.width / 2, canvas.height / 2 - 20);
+    ctx.fillText("ARAHKAN TANGAN Untuk Menembak", canvas.width / 2, canvas.height / 2 + 5);
 
-    // Start button
     const btnWidth = 300;
     const btnHeight = 70;
     const btnX = (canvas.width / 2) - (btnWidth / 2);
     const btnY = canvas.height / 2 + 50;
 
     this.startButton = { x: btnX, y: btnY, width: btnWidth, height: btnHeight };
-
-    // Check if hovering
     const pointer = handTracker.getPointer();
     const isHovering = pointer.visible && handTracker.isPointerInRect(this.startButton);
-
-    // Draw button
     this.drawButton(this.startButton, "START GAME", '#00FF00', isHovering, handTracker.getDwellProgress());
   }
 
-  // ========== GAME HUD ==========
+  // ========== HUD (PIXEL STYLE) ==========
 
-  /**
-   * Draw HUD (health bar, score)
-   */
   drawHUD(player) {
     const ctx = this.ctx;
-    const canvas = this.canvas;
-
-    // Health bar (top left)
-    const healthBarWidth = 200;
-    const healthBarHeight = 25;
-    const healthBarX = 20;
-    const healthBarY = 20;
-
-    // Background
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-    ctx.fillRect(healthBarX, healthBarY, healthBarWidth, healthBarHeight);
-
-    // Health fill
+    const x = 30;
+    const y = 30;
+    const segments = 10;
     const healthPercent = player.getHealthPercentage();
-    const fillWidth = healthBarWidth * healthPercent;
-    
-    // Color based on health
-    if (healthPercent > 0.6) {
-      ctx.fillStyle = '#4CAF50'; // Green
-    } else if (healthPercent > 0.3) {
-      ctx.fillStyle = '#FFEB3B'; // Yellow
-    } else {
-      ctx.fillStyle = '#F44336'; // Red
+    const activeSegments = Math.ceil(healthPercent * segments);
+
+    // Ikon Hati Pixel
+    ctx.fillStyle = '#FF0000';
+    ctx.fillRect(x + 2, y + 2, 4, 4);
+    ctx.fillRect(x + 8, y + 2, 4, 4);
+    ctx.fillRect(x, y + 6, 16, 4);
+    ctx.fillRect(x + 4, y + 10, 8, 4);
+    ctx.fillRect(x + 8, y + 14, 4, 4);
+
+    // Bar Health Pixel
+    const barStartX = x + 24;
+    const barY = y + 2;
+    const segWidth = 16;
+    const segHeight = 16;
+    const gap = 4;
+
+    ctx.fillStyle = '#222';
+    for (let i = 0; i < segments; i++) {
+        ctx.fillRect(barStartX + (i * (segWidth + gap)), barY, segWidth, segHeight);
     }
-    
-    ctx.fillRect(healthBarX, healthBarY, fillWidth, healthBarHeight);
+    for (let i = 0; i < activeSegments; i++) {
+      ctx.fillStyle = '#FF0000'; 
+      ctx.fillRect(barStartX + (i * (segWidth + gap)) + 2, barY + 2, segWidth - 4, segHeight - 4);
+    }
+// ========== HUD (PIXEL & ARCADE STYLE) ==========
 
-    // Border
-    ctx.strokeStyle = '#FFFFFF';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(healthBarX, healthBarY, healthBarWidth, healthBarHeight);
+  // ... (pastikan fungsi drawHUD kamu sebelumnya tetap ada, bagian bawahnya ganti dengan ini)
 
-    // Health text
-    ctx.font = "16px 'Orbitron', sans-serif";
-    ctx.fillStyle = '#FFFFFF';
-    ctx.textAlign = 'left';
-    ctx.fillText(`HEALTH: ${Math.round(player.health)}`, healthBarX + 5, healthBarY + 18);
-
-    // Score (top center)
-    ctx.font = "bold 32px 'Orbitron', sans-serif";
+    // Score Arcade (Pixel style)
+    ctx.font = "20px 'Press Start 2P', cursive";
     ctx.textAlign = 'center';
-    ctx.shadowColor = '#FFFF00';
-    ctx.shadowBlur = 10;
-    ctx.fillStyle = '#FFEB3B';
-    ctx.fillText(`SCORE: ${player.score}`, canvas.width / 2, 50);
-    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#FFFF00';
+    ctx.shadowBlur = 0; // Hapus blur agar teks tajam (pixelated)
+    ctx.fillText(`SCORE:${player.score}`, this.canvas.width / 2, 60);
   }
 
-  /**
-   * Draw progress bar (jarak ke finish line)
-   */
+  // ========== PROGRESS BAR (ARCADE STYLE) ==========
+
   drawProgressBar(player, canvas) {
     const ctx = this.ctx;
     const barWidth = 400;
-    const barHeight = 25;
+    const barHeight = 30;
     const barX = (canvas.width - barWidth) / 2;
-    const barY = 60; // Below score
-
-    // Calculate progress
+    const barY = 80; // Sedikit di bawah score
+    
     const progress = Math.min(player.totalDistance / CONFIG.GAME.FINISH_DISTANCE, 1);
     const fillWidth = barWidth * progress;
 
-    // Draw background
-    ctx.fillStyle = 'rgba(50, 50, 50, 0.8)';
+    // Background Bar (Solid, bukan transparan)
+    ctx.fillStyle = '#1a1a1a';
     ctx.fillRect(barX, barY, barWidth, barHeight);
 
-    // Draw progress fill with gradient
-    const gradient = ctx.createLinearGradient(barX, 0, barX + fillWidth, 0);
-    gradient.addColorStop(0, '#4CAF50');
-    gradient.addColorStop(1, '#8BC34A');
-    ctx.fillStyle = gradient;
+    // Fill Progress (Solid Green, bukan gradient)
+    ctx.fillStyle = '#4CAF50';
     ctx.fillRect(barX, barY, fillWidth, barHeight);
 
-    // Draw border
+    // Border (Cyan Arcade - Tebal)
     ctx.strokeStyle = '#00FFFF';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 4;
     ctx.strokeRect(barX, barY, barWidth, barHeight);
 
-    // Draw distance text
+    // Teks di tengah (Font pixel)
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = "bold 14px 'Orbitron'";
+    ctx.font = "10px 'Press Start 2P', cursive";
     ctx.textAlign = 'center';
-    const distanceText = `${Math.floor(player.totalDistance)}m / ${CONFIG.GAME.FINISH_DISTANCE}m`;
-    ctx.fillText(distanceText, canvas.width / 2, barY + 17);
-
-    // Draw "FINISH" marker when close
-    if (progress > 0.9) {
-      ctx.fillStyle = '#FFD700';
-      ctx.font = "bold 18px 'Orbitron'";
-      ctx.fillText('🏁 FINISH LINE AHEAD!', canvas.width / 2, barY - 10);
-    }
+    ctx.fillText(`${Math.floor(player.totalDistance)}m/${CONFIG.GAME.FINISH_DISTANCE}m`, canvas.width / 2, barY + 20);
   }
 
-  // ========== GAME OVER ==========
+  // ========== VOLUME METER (ARCADE STYLE) ==========
 
-  /**
-   * Draw game over screen
-   */
-  drawGameOver(player, handTracker, deltaTime) {
-    const ctx = this.ctx;
-    const canvas = this.canvas;
-
-    // Overlay
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Game Over text
-    ctx.font = "bold 64px 'Orbitron', sans-serif";
-    ctx.textAlign = 'center';
-    ctx.shadowColor = '#FF0000';
-    ctx.shadowBlur = 20;
-    ctx.fillStyle = '#FF5555';
-    ctx.fillText("GAME OVER", canvas.width / 2, canvas.height / 2 - 100);
-    ctx.shadowBlur = 0;
-
-    // Final score
-    ctx.font = "32px 'Orbitron', sans-serif";
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillText(`Final Score: ${player.score}`, canvas.width / 2, canvas.height / 2 - 30);
-
-    // Buttons
-    const btnWidth = 300;
-    const btnHeight = 70;
-    const btnMargin = 20;
-    const btnX = (canvas.width / 2) - (btnWidth / 2);
-    const restartY = canvas.height / 2 + 30;
-    const menuY = restartY + btnHeight + btnMargin;
-
-    this.restartButton = { x: btnX, y: restartY, width: btnWidth, height: btnHeight };
-    this.menuButton = { x: btnX, y: menuY, width: btnWidth, height: btnHeight };
-
-    const pointer = handTracker.getPointer();
-    const hoveringRestart = pointer.visible && handTracker.isPointerInRect(this.restartButton);
-    const hoveringMenu = pointer.visible && handTracker.isPointerInRect(this.menuButton);
-
-    this.drawButton(this.restartButton, "RESTART", '#00FF00', hoveringRestart, 
-                    hoveringRestart ? handTracker.getDwellProgress() : 0);
-    this.drawButton(this.menuButton, "MENU", '#00FFFF', hoveringMenu, 
-                    hoveringMenu ? handTracker.getDwellProgress() : 0);
-  }
-
-  /**
-   * Draw game win screen
-   */
-  drawGameWin(player, handTracker, deltaTime) {
-    const ctx = this.ctx;
-    const canvas = this.canvas;
-
-    // Overlay (green tint)
-    ctx.fillStyle = 'rgba(0, 30, 0, 0.7)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Victory text
-    ctx.font = "bold 64px 'Orbitron', sans-serif";
-    ctx.textAlign = 'center';
-    ctx.shadowColor = '#00FF00';
-    ctx.shadowBlur = 30;
-    ctx.fillStyle = '#00FF00';
-    ctx.fillText("🏁 VICTORY! 🏁", canvas.width / 2, canvas.height / 2 - 120);
-    ctx.shadowBlur = 0;
-
-    // Congrats message
-    ctx.font = "28px 'Orbitron', sans-serif";
-    ctx.fillStyle = '#FFEB3B';
-    ctx.fillText("You reached the finish line!", canvas.width / 2, canvas.height / 2 - 60);
-
-    // Final score and distance
-    ctx.font = "24px 'Orbitron', sans-serif";
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillText(`Final Score: ${player.score}`, canvas.width / 2, canvas.height / 2 - 20);
-    ctx.fillText(`Distance: ${Math.floor(player.totalDistance)}m`, canvas.width / 2, canvas.height / 2 + 10);
-
-    // Buttons
-    const btnWidth = 300;
-    const btnHeight = 70;
-    const btnMargin = 20;
-    const btnX = (canvas.width / 2) - (btnWidth / 2);
-    const restartY = canvas.height / 2 + 60;
-    const menuY = restartY + btnHeight + btnMargin;
-
-    this.restartButton = { x: btnX, y: restartY, width: btnWidth, height: btnHeight };
-    this.menuButton = { x: btnX, y: menuY, width: btnWidth, height: btnHeight };
-
-    const pointer = handTracker.getPointer();
-    const hoveringRestart = pointer.visible && handTracker.isPointerInRect(this.restartButton);
-    const hoveringMenu = pointer.visible && handTracker.isPointerInRect(this.menuButton);
-
-    this.drawButton(this.restartButton, "PLAY AGAIN", '#00FF00', hoveringRestart,
-                    hoveringRestart ? handTracker.getDwellProgress() : 0);
-    this.drawButton(this.menuButton, "MENU", '#00FFFF', hoveringMenu,
-                    hoveringMenu ? handTracker.getDwellProgress() : 0);
-  }
-
-  // ========== VOLUME METER ==========
-
-  /**
-   * Draw volume meter (top right)
-   */
   drawVolumeMeter(volumeLevel) {
     const ctx = this.ctx;
-    const canvas = this.canvas;
-
-    const meterWidth = 200;
-    const meterHeight = 25;
-    const meterX = canvas.width - meterWidth - 20;
+    const segments = 10;
+    const activeSegments = Math.ceil(volumeLevel * segments);
+    const segWidth = 16;
+    const segHeight = 16;
+    const gap = 4;
+    const meterX = this.canvas.width - (segments * (segWidth + gap)) - 20;
     const meterY = 20;
 
-    // Background
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-    ctx.fillRect(meterX, meterY, meterWidth, meterHeight);
-
-    // Volume fill
-    const fillWidth = meterWidth * volumeLevel;
-    
-    // Color based on volume
-    if (volumeLevel < 0.3) {
-      ctx.fillStyle = '#F44336'; // Red (too quiet)
-    } else if (volumeLevel < 0.7) {
-      ctx.fillStyle = '#FFEB3B'; // Yellow (good)
-    } else {
-      ctx.fillStyle = '#4CAF50'; // Green (loud)
-    }
-    
-    ctx.fillRect(meterX, meterY, fillWidth, meterHeight);
-
-    // Border
-    ctx.strokeStyle = '#FFFFFF';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(meterX, meterY, meterWidth, meterHeight);
-
-    // Label
     ctx.font = "14px 'Orbitron', sans-serif";
     ctx.fillStyle = '#FFFFFF';
     ctx.textAlign = 'right';
-    ctx.fillText("VOLUME", meterX - 5, meterY + 18);
+    ctx.fillText("VOLUME", meterX - 10, meterY + 14);
 
-    // Percentage
-    ctx.textAlign = 'center';
-    ctx.fillText(`${Math.round(volumeLevel * 100)}%`, meterX + meterWidth / 2, meterY + 18);
+    for (let i = 0; i < segments; i++) {
+      const segX = meterX + (i * (segWidth + gap));
+      let color = '#555';
+      if (i < activeSegments) {
+        if (volumeLevel < 0.4) color = '#F44336';
+        else if (volumeLevel < 0.7) color = '#FFEB3B';
+        else color = '#4CAF50';
+      }
+      ctx.fillStyle = color;
+      ctx.fillRect(segX, meterY, segWidth, segHeight);
+    }
   }
 
-  // ========== POINTER & DWELL ==========
+  // ========== OTHERS ==========
 
-  /**
-   * Draw hand pointer
-   */
+drawGameOver(player, handTracker, deltaTime) {
+    const ctx = this.ctx;
+    const canvas = this.canvas;
+    
+    // 1. Efek Background Scanlines (Garis-garis layar)
+    ctx.fillStyle = '#000011';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+    for(let i = 0; i < canvas.height; i += 4) {
+      ctx.fillRect(0, i, canvas.width, 2);
+    }
+
+    // 2. Teks "GAME OVER" dengan efek Glitch sederhana
+    ctx.textAlign = 'center';
+    const shake = Math.sin(Date.now() / 50) * 2; // Efek bergetar
+    
+    // Bayangan merah/cyan untuk efek glitch
+    ctx.font = "bold 60px 'Press Start 2P', cursive";
+    ctx.fillStyle = '#FF0000';
+    ctx.fillText("GAME OVER", canvas.width / 2 + shake, canvas.height / 2 - 100);
+    ctx.fillStyle = '#00FFFF';
+    ctx.fillText("GAME OVER", canvas.width / 2 - shake, canvas.height / 2 - 100);
+
+    // 3. Final Score
+    ctx.font = "20px 'Press Start 2P', cursive";
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillText(`FINAL SCORE: ${player.score}`, canvas.width / 2, canvas.height / 2 - 30);
+
+    // 4. Tombol dengan gaya yang sama
+    const btnWidth = 300;
+    const btnHeight = 60;
+    const btnX = (canvas.width / 2) - (btnWidth / 2);
+    
+    this.restartButton = { x: btnX, y: canvas.height / 2 + 30, width: btnWidth, height: btnHeight };
+    this.menuButton = { x: btnX, y: canvas.height / 2 + 110, width: btnWidth, height: btnHeight };
+
+    this.drawButton(this.restartButton, "RESTART", '#00FF00', handTracker.isPointerInRect(this.restartButton), handTracker.getDwellProgress());
+    this.drawButton(this.menuButton, "MENU", '#00FFFF', handTracker.isPointerInRect(this.menuButton), handTracker.getDwellProgress());
+  }
+
+drawGameWin(player, handTracker, deltaTime) {
+    const ctx = this.ctx;
+    const canvas = this.canvas;
+    
+    // 1. Background (Dark Green Arcade)
+    ctx.fillStyle = '#051005'; 
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Efek Scanlines untuk konsistensi retro
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+    for(let i = 0; i < canvas.height; i += 4) ctx.fillRect(0, i, canvas.width, 2);
+
+    // 2. Fungsi helper checkerboard
+    const drawCheckerboard = (x, y) => {
+      const size = 20; // Dibuat sedikit lebih besar agar terlihat jelas
+      for (let i = 0; i < 2; i++) {
+        for (let j = 0; j < 2; j++) {
+          ctx.fillStyle = (i + j) % 2 === 0 ? '#FFFFFF' : '#333333';
+          ctx.fillRect(x + i * size, y + j * size, size, size);
+        }
+      }
+    };
+
+    // 3. Teks VICTORY!
+    ctx.font = "40px 'Press Start 2P', cursive";
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#00FF00';
+    const textY = canvas.height / 2 - 120; // Geser sedikit ke atas
+    ctx.fillText("VICTORY!", canvas.width / 2, textY);
+
+    // 4. Final Score (Ditambahkan di sini agar tidak kosong)
+    ctx.font = "20px 'Press Start 2P', cursive";
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillText(`FINAL SCORE: ${player.score}`, canvas.width / 2, textY + 50);
+
+    // Gambar checkerboard
+    drawCheckerboard(canvas.width / 2 - 220, textY - 35);
+    drawCheckerboard(canvas.width / 2 + 190, textY - 35);
+
+    // 5. Tombol (Gunakan helper action buttons agar rapi)
+    // Jika fungsi drawActionButtons ada, gunakan itu. Jika tidak, pakai cara manual ini:
+    const btnWidth = 320;
+    const btnHeight = 65;
+    const btnX = (canvas.width / 2) - (btnWidth / 2);
+    
+    this.restartButton = { x: btnX, y: canvas.height / 2 + 20, width: btnWidth, height: btnHeight };
+    this.menuButton = { x: btnX, y: canvas.height / 2 + 110, width: btnWidth, height: btnHeight };
+
+    this.drawButton(this.restartButton, "PLAY AGAIN", '#00FF00', handTracker.isPointerInRect(this.restartButton), handTracker.getDwellProgress());
+    this.drawButton(this.menuButton, "MENU", '#00FFFF', handTracker.isPointerInRect(this.menuButton), handTracker.getDwellProgress());
+  }
   drawPointer(pointer) {
     const ctx = this.ctx;
-
-    // Outer circle (cyan glow)
     ctx.fillStyle = 'rgba(0, 255, 255, 0.3)';
-    ctx.beginPath();
-    ctx.arc(pointer.x, pointer.y, 20, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Inner circle (bright)
-    ctx.fillStyle = 'rgba(0, 255, 255, 0.8)';
-    ctx.beginPath();
-    ctx.arc(pointer.x, pointer.y, 10, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Center dot
+    ctx.beginPath(); ctx.arc(pointer.x, pointer.y, 20, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#FFFFFF';
-    ctx.beginPath();
-    ctx.arc(pointer.x, pointer.y, 3, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.beginPath(); ctx.arc(pointer.x, pointer.y, 3, 0, Math.PI * 2); ctx.fill();
   }
 
-  /**
-   * Draw dwell indicator (progress circle saat shooting)
-   */
   drawDwellIndicator(pointer, progress) {
     const ctx = this.ctx;
-    const radius = 30;
-
-    // Background circle
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.arc(pointer.x, pointer.y, radius, 0, Math.PI * 2);
-    ctx.stroke();
-
-    // Progress arc
     ctx.strokeStyle = '#00FF00';
     ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.arc(pointer.x, pointer.y, radius, -Math.PI / 2, (-Math.PI / 2) + (progress * Math.PI * 2));
+    ctx.beginPath(); ctx.arc(pointer.x, pointer.y, 30, -Math.PI / 2, (-Math.PI / 2) + (progress * Math.PI * 2));
     ctx.stroke();
   }
 
-  // ========== HELPER METHODS ==========
-
-  /**
-   * Draw button dengan hover effect dan dwell progress
-   */
   drawButton(button, text, color, isHovering, dwellProgress) {
     const ctx = this.ctx;
-
-    // Background
     ctx.fillStyle = 'rgba(20, 20, 50, 0.8)';
     ctx.fillRect(button.x, button.y, button.width, button.height);
-
-    // Border with glow if hovering
     ctx.strokeStyle = color;
     ctx.lineWidth = 3;
-    
-    if (isHovering) {
-      ctx.shadowColor = color;
-      ctx.shadowBlur = 15;
-    }
-    
+    if (isHovering) { ctx.shadowColor = color; ctx.shadowBlur = 15; }
     ctx.strokeRect(button.x, button.y, button.width, button.height);
     ctx.shadowBlur = 0;
-
-    // Dwell progress fill
     if (isHovering && dwellProgress > 0) {
-      const fillWidth = button.width * dwellProgress;
-      ctx.fillStyle = color;
-      ctx.globalAlpha = 0.3;
-      ctx.fillRect(button.x, button.y, fillWidth, button.height);
+      ctx.fillStyle = color; ctx.globalAlpha = 0.3;
+      ctx.fillRect(button.x, button.y, button.width * dwellProgress, button.height);
       ctx.globalAlpha = 1.0;
     }
-
-    // Text
     ctx.font = "bold 24px 'Orbitron', sans-serif";
-    ctx.textAlign = 'center';
     ctx.fillStyle = '#FFFFFF';
+    ctx.textAlign = 'center';
     ctx.fillText(text, button.x + button.width / 2, button.y + button.height / 2 + 8);
   }
 
-  /**
-   * Get start button bounds
-   */
-  getStartButton() {
-    return this.startButton;
-  }
-
-  /**
-   * Get restart button bounds
-   */
-  getRestartButton() {
-    return this.restartButton;
-  }
-
-  /**
-   * Get menu button bounds
-   */
-  getMenuButton() {
-    return this.menuButton;
-  }
+  getStartButton() { return this.startButton; }
+  getRestartButton() { return this.restartButton; }
+  getMenuButton() { return this.menuButton; }
 }
 
-/**
- * Draw mute button (standalone function)
- * @param {CanvasRenderingContext2D} ctx - Canvas context
- * @param {AudioManager} audioManager - Audio manager instance
- * @param {Object} pointer - Hand pointer {x, y, visible}
- * @param {number} canvasWidth - Canvas width
- * @param {number} dwellProgress - Dwell progress (0-1)
- * @returns {Object} - Button bounds {x, y, width, height}
- */
 export function drawMuteButton(ctx, audioManager, pointer, canvasWidth, dwellProgress = 0) {
-  const btnSize = 50;
-  const btnX = canvasWidth - btnSize - 20;
-  const btnY = 80; // Below volume meter
-  
-  // Check if hovering
-  const isHovering = pointer.visible &&
-    pointer.x >= btnX && pointer.x <= btnX + btnSize &&
-    pointer.y >= btnY && pointer.y <= btnY + btnSize;
-  
-  // Draw button background
+  const btnSize = 50, btnX = canvasWidth - btnSize - 20, btnY = 80;
+  const isHovering = pointer.visible && pointer.x >= btnX && pointer.x <= btnX + btnSize && pointer.y >= btnY && pointer.y <= btnY + btnSize;
   ctx.fillStyle = isHovering ? 'rgba(70, 70, 70, 0.9)' : 'rgba(50, 50, 50, 0.8)';
   ctx.fillRect(btnX, btnY, btnSize, btnSize);
-  
-  // Draw border
   ctx.strokeStyle = isHovering ? '#FFD700' : '#00FFFF';
-  ctx.lineWidth = 2;
-  
-  if (isHovering) {
-    ctx.shadowColor = '#FFD700';
-    ctx.shadowBlur = 10;
-  }
-  
   ctx.strokeRect(btnX, btnY, btnSize, btnSize);
-  ctx.shadowBlur = 0;
-  
-  // Dwell progress fill
   if (isHovering && dwellProgress > 0) {
-    const fillWidth = btnSize * dwellProgress;
-    ctx.fillStyle = '#FFD700';
-    ctx.globalAlpha = 0.3;
-    ctx.fillRect(btnX, btnY, fillWidth, btnSize);
-    ctx.globalAlpha = 1.0;
+    ctx.fillStyle = '#FFD700'; ctx.globalAlpha = 0.3; ctx.fillRect(btnX, btnY, btnSize * dwellProgress, btnSize); ctx.globalAlpha = 1.0;
   }
-  
-  // Draw icon (speaker or mute symbol)
-  ctx.fillStyle = '#FFFFFF';
-  ctx.font = '28px Arial';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  const icon = audioManager.isMuted ? '🔇' : '🔊';
-  ctx.fillText(icon, btnX + btnSize/2, btnY + btnSize/2);
-  ctx.textBaseline = 'alphabetic'; // Reset to default
-  
-  // Return button bounds for click detection
-  return { x: btnX, y: btnY, width: btnSize, height: btnSize };
+  ctx.fillStyle = '#FFFFFF'; ctx.font = '28px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(audioManager.isMuted ? '🔇' : '🔊', btnX + btnSize/2, btnY + btnSize/2);
 }
